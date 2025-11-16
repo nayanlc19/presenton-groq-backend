@@ -10,6 +10,12 @@ from api.v1.mock.router import API_V1_MOCK_ROUTER
 app = FastAPI(lifespan=app_lifespan)
 
 
+# Health check endpoint for Docker/Koyeb
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+
 # Routers
 app.include_router(API_V1_PPT_ROUTER)
 app.include_router(API_V1_WEBHOOK_ROUTER)
