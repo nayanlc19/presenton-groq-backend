@@ -392,7 +392,7 @@ class LLMClient:
         max_tokens: Optional[int] = None,
         depth: int = 0,
     ):
-        extra_body = {"enable_thinking": False} if self.disable_thinking() else None
+        extra_body = None  # Removed enable_thinking - not supported by Groq
         return await self._generate_openai(
             model=model,
             messages=messages,
@@ -762,14 +762,27 @@ class LLMClient:
         max_tokens: Optional[int] = None,
         depth: int = 0,
     ):
-        extra_body = {"enable_thinking": False} if self.disable_thinking() else None
+        # Groq doesn't support json_schema - force tool-based approach
+        extra_body = None
+        all_tools = [
+            self.tool_calls_handler.parse_tool(
+                LLMDynamicTool(
+                    name="ResponseSchema",
+                    description="Provide response to the user",
+                    parameters=response_format,
+                    handler=do_nothing_async,
+                ),
+                strict=False,  # Groq doesn't support strict mode
+            )
+        ]
         return await self._generate_openai_structured(
             model=model,
             messages=messages,
             response_format=response_format,
-            strict=strict,
+            strict=False,  # Disable strict for Groq
             max_tokens=max_tokens,
             extra_body=extra_body,
+            tools=all_tools,  # Force tool-based approach
             depth=depth,
         )
 
@@ -1086,7 +1099,7 @@ class LLMClient:
         max_tokens: Optional[int] = None,
         depth: int = 0,
     ):
-        extra_body = {"enable_thinking": False} if self.disable_thinking() else None
+        extra_body = None  # Removed enable_thinking - not supported by Groq
         return self._stream_openai(
             model=model,
             messages=messages,
@@ -1506,14 +1519,28 @@ class LLMClient:
         max_tokens: Optional[int] = None,
         depth: int = 0,
     ):
-        extra_body = {"enable_thinking": False} if self.disable_thinking() else None
+        # Groq doesn't support json_schema - force tool-based approach
+        # by passing tools with ResponseSchema
+        extra_body = None
+        all_tools = [
+            self.tool_calls_handler.parse_tool(
+                LLMDynamicTool(
+                    name="ResponseSchema",
+                    description="Provide response to the user",
+                    parameters=response_format,
+                    handler=do_nothing_async,
+                ),
+                strict=False,  # Groq doesn't support strict mode
+            )
+        ]
         return self._stream_openai_structured(
             model=model,
             messages=messages,
             response_format=response_format,
-            strict=strict,
+            strict=False,  # Disable strict for Groq
             max_tokens=max_tokens,
             extra_body=extra_body,
+            tools=all_tools,  # Force tool-based approach
             depth=depth,
         )
 

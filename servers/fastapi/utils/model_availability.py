@@ -104,27 +104,25 @@ async def check_llm_and_image_provider_api_or_model_availability():
             if custom_model not in available_models:
                 raise Exception(f"Model {custom_model} is not available")
 
-        # Check for Image Provider and API keys
+        # Check for Image Provider and API keys (optional - warn but don't fail)
         selected_image_provider = get_selected_image_provider()
-        if not selected_image_provider:
-            raise Exception("IMAGE_PROVIDER must be provided")
+        if selected_image_provider:
+            if selected_image_provider == ImageProvider.PEXELS:
+                pexels_api_key = get_pexels_api_key_env()
+                if not pexels_api_key:
+                    print("WARNING: PEXELS_API_KEY not provided - images will be disabled")
 
-        if selected_image_provider == ImageProvider.PEXELS:
-            pexels_api_key = get_pexels_api_key_env()
-            if not pexels_api_key:
-                raise Exception("PEXELS_API_KEY must be provided")
+            elif selected_image_provider == ImageProvider.PIXABAY:
+                pixabay_api_key = get_pixabay_api_key_env()
+                if not pixabay_api_key:
+                    print("WARNING: PIXABAY_API_KEY not provided - images will be disabled")
 
-        elif selected_image_provider == ImageProvider.PIXABAY:
-            pixabay_api_key = get_pixabay_api_key_env()
-            if not pixabay_api_key:
-                raise Exception("PIXABAY_API_KEY must be provided")
+            elif selected_image_provider == ImageProvider.GEMINI_FLASH:
+                google_api_key = get_google_api_key_env()
+                if not google_api_key:
+                    print("WARNING: GOOGLE_API_KEY not provided - images will be disabled")
 
-        elif selected_image_provider == ImageProvider.GEMINI_FLASH:
-            google_api_key = get_google_api_key_env()
-            if not google_api_key:
-                raise Exception("GOOGLE_API_KEY must be provided")
-
-        elif selected_image_provider == ImageProvider.DALLE3:
-            openai_api_key = get_openai_api_key_env()
-            if not openai_api_key:
-                raise Exception("OPENAI_API_KEY must be provided")
+            elif selected_image_provider == ImageProvider.DALLE3:
+                openai_api_key = get_openai_api_key_env()
+                if not openai_api_key:
+                    print("WARNING: OPENAI_API_KEY not provided - images will be disabled")
