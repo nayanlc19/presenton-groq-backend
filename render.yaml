@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: presenton-backend
+    runtime: docker
+    repo: https://github.com/nayanlc19/presenton-groq-backend
+    branch: main
+    dockerfilePath: ./servers/fastapi/Dockerfile
+    dockerContext: ./servers/fastapi
+    region: singapore
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LLM
+        value: openai
+      - key: CAN_CHANGE_KEYS
+        value: "true"
+      - key: DISABLE_ANONYMOUS_TELEMETRY
+        value: "true"
