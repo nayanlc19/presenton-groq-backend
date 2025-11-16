@@ -1,0 +1,63 @@
+# Python virtual environments and cache
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Development and testing
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Local database and ChromaDB data
+chroma/
+*.db
+*.sqlite3
+app_data/
+
+# Development files
+.python-version
+.env.local
+.env.development
+*.log
+.DS_Store
+Thumbs.db
+
+# Windows scripts (not needed in Linux container)
+*.ps1
+*.bat
+
+# MCP server file (only for MCP, not REST API)
+mcp_server.py
+
+# OpenAPI spec (not needed at runtime)
+openai_spec.json
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation
+README.md
+LICENSE
+*.md
+
+# UV lock file (using pyproject.toml for dependencies)
+uv.lock
