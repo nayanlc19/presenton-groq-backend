@@ -47,12 +47,13 @@ COPY assets ./assets
 COPY static ./static
 COPY server.py ./
 
-# Expose port
+# Expose port (will use PORT env var at runtime, defaults to 8000)
 EXPOSE 8000
 
 # Health check with longer grace period for startup
+# Uses shell form to support PORT environment variable
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Start FastAPI server
-CMD ["python", "server.py", "--port", "8000", "--reload", "false"]
+# Start FastAPI server (PORT env var will be used, defaults to 8000)
+CMD ["python", "server.py", "--reload", "false"]
