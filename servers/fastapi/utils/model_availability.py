@@ -101,7 +101,8 @@ async def check_llm_and_image_provider_api_or_model_availability():
             )
             print("-" * 50)
             print("Available models: ", available_models)
-            if custom_model not in available_models:
+            # Case-insensitive model name comparison (Groq returns lowercase, config may vary)
+            if custom_model.lower() not in [m.lower() for m in available_models]:
                 raise Exception(f"Model {custom_model} is not available")
 
         # Check for Image Provider and API keys (optional - warn but don't fail)
