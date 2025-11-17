@@ -3,19 +3,21 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - echo Logging in to Amazon Lightsail...
+      - echo Build started on `date`
       - cd servers/fastapi
+      - echo Installing Lightsail plugin...
+      - curl "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl" -o "/usr/local/bin/lightsailctl"
+      - chmod +x /usr/local/bin/lightsailctl
       
   build:
     commands:
-      - echo Build started on `date`
       - echo Building the Docker image...
       - docker build -t presenton-backend:latest -f Dockerfile .
       
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Pushing Docker image to Lightsail...
-      # Push image to Lightsail container service
-      - aws lightsail push-container-image --service-name presenton-backend --label presenton-api --image presenton-backend:latest --region eu-north-1
-      - echo Deployment will be triggered separately with environment variables
+      - echo Pushing Docker image to Lightsail using lightsailctl...
+      - aws lightsail get-container-services --service-name presenton-backend --region eu-north-1
+      - lightsailctl push-container-image --service-name presenton-backend --label presenton-api --image presenton-backend:latest --region eu-north-1
+      - echo Image pushed successfully
