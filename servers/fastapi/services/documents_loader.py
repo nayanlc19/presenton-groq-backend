@@ -10,16 +10,12 @@ from constants.documents import (
     TEXT_MIME_TYPES,
     WORD_TYPES,
 )
-from services.docling_service import DoclingService
 
 
 class DocumentsLoader:
 
     def __init__(self, file_paths: List[str]):
         self._file_paths = file_paths
-
-        self.docling_service = DoclingService()
-
         self._documents: List[str] = []
         self._images: List[List[str]] = []
 
@@ -80,22 +76,40 @@ class DocumentsLoader:
         document: str = ""
 
         if load_text:
-            document = self.docling_service.parse_to_markdown(file_path)
+            document = await self.extract_text_from_pdf(file_path)
 
         if load_images:
             image_paths = await self.get_page_images_from_pdf_async(file_path, temp_dir)
 
         return document, image_paths
+    
+    @classmethod
+    async def extract_text_from_pdf(cls, file_path: str) -> str:
+        """Extract text from PDF using pdfplumber (lightweight alternative to docling)"""
+        def _extract():
+            with pdfplumber.open(file_path) as pdf:
+                text_parts = []
+                for page in pdf.pages:
+                    text = page.extract_text()
+                    if text:
+                        text_parts.append(text)
+                return "\n\n".join(text_parts)
+        
+        return await asyncio.to_thread(_extract)
 
     async def load_text(self, file_path: str) -> str:
         with open(file_path, "r") as file:
             return await asyncio.to_thread(file.read)
 
     def load_msword(self, file_path: str) -> str:
-        return self.docling_service.parse_to_markdown(file_path)
+        # Word document support removed (docling dependency too heavy)
+        # Return placeholder or implement lightweight alternative if needed
+        return f"Word document: {file_path} (parsing not supported without docling)"
 
     def load_powerpoint(self, file_path: str) -> str:
-        return self.docling_service.parse_to_markdown(file_path)
+        # PowerPoint support removed (docling dependency too heavy)
+        # Return placeholder or implement lightweight alternative if needed
+        return f"PowerPoint document: {file_path} (parsing not supported without docling)"
 
     @classmethod
     def get_page_images_from_pdf(cls, file_path: str, temp_dir: str) -> List[str]:
