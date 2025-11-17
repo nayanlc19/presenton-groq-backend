@@ -8,19 +8,25 @@ from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
 class IconFinderService:
     def __init__(self):
         self.collection_name = "icons"
-        self.client = chromadb.PersistentClient(
-            path="chroma", settings=Settings(anonymized_telemetry=False)
-        )
-        print("Initializing icons collection...")
-        self._initialize_icons_collection()
-        print("Icons collection initialized.")
+        self._client = None
+        self._collection = None
+        self._initialized = False
 
     def _initialize_icons_collection(self):
+        """Lazy initialization - only runs when first icon search is requested"""
+        if self._initialized:
+            return
+            
+        print("Initializing icons collection (lazy load)...")
+        self._client = chromadb.PersistentClient(
+            path="chroma", settings=Settings(anonymized_telemetry=False)
+        )
+        
         self.embedding_function = ONNXMiniLM_L6_V2()
         self.embedding_function.DOWNLOAD_PATH = "chroma/models"
         self.embedding_function._download_model_if_not_exists()
         try:
-            self.collection = self.client.get_collection(
+            self._collection = self._client.get_collection(
                 self.collection_name, embedding_function=self.embedding_function
             )
         except Exception:
@@ -37,16 +43,23 @@ class IconFinderService:
                     ids.append(each["name"])
 
             if documents:
-                self.collection = self.client.create_collection(
+                self._collection = self._client.create_collection(
                     name=self.collection_name,
                     embedding_function=self.embedding_function,
                     metadata={"hnsw:space": "cosine"},
                 )
-                self.collection.add(documents=documents, ids=ids)
+                self._collection.add(documents=documents, ids=ids)
+        
+        self._initialized = True
+        print("Icons collection initialized.")
 
     async def search_icons(self, query: str, k: int = 1):
+        # Lazy initialization on first use
+        if not self._initialized:
+            await asyncio.to_thread(self._initialize_icons_collection)
+        
         result = await asyncio.to_thread(
-            self.collection.query,
+            self._collection.query,
             query_texts=[query],
             n_results=k,
         )
