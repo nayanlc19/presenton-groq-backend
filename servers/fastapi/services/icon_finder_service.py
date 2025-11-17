@@ -1,8 +1,5 @@
 import asyncio
 import json
-import chromadb
-from chromadb.config import Settings
-from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
 
 
 class IconFinderService:
@@ -15,6 +12,16 @@ class IconFinderService:
     def _initialize_icons_collection(self):
         """Lazy initialization - only runs when first icon search is requested"""
         if self._initialized:
+            return
+        
+        # Import ChromaDB only when needed (optional dependency)
+        try:
+            import chromadb
+            from chromadb.config import Settings
+            from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
+        except ImportError:
+            print("ChromaDB not installed - icon search will fail gracefully")
+            self._initialized = True
             return
             
         print("Initializing icons collection (lazy load)...")
@@ -57,6 +64,11 @@ class IconFinderService:
         # Lazy initialization on first use
         if not self._initialized:
             await asyncio.to_thread(self._initialize_icons_collection)
+        
+        # If ChromaDB not available, return empty list
+        if self._collection is None:
+            print("ChromaDB not available - returning empty icon list")
+            return []
         
         result = await asyncio.to_thread(
             self._collection.query,
