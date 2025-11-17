@@ -5,11 +5,14 @@ description = "Presenton AI presentation generator - Groq API backend"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
+    "aiohttp>=3.11.11",
     "aiosqlite>=0.21.0",
     "anthropic>=0.60.0",
     "dirtyjson>=1.0.8",
     "fastapi[standard]>=0.116.1",
     "google-genai>=1.28.0",
+    "groq>=0.14.0",
+    "lxml>=5.3.0",
     "nltk>=3.9.1",
     "openai>=1.98.0",
     "pathvalidate>=3.3.1",
