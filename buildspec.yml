@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon Lightsail...
+      - cd servers/fastapi
+      
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t presenton-backend:latest -f Dockerfile .
+      
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing Docker image to Lightsail...
+      # Push image to Lightsail container service
+      - aws lightsail push-container-image --service-name presenton-backend --label presenton-api --image presenton-backend:latest --region eu-north-1
+      - echo Deployment will be triggered separately with environment variables
