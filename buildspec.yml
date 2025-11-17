@@ -22,7 +22,7 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Creating Lightsail deployment JSON...
-      - printf '[{"containerName":"presonton-api","image":"%s","environment":{"LLM":"custom","CUSTOM_LLM_URL":"https://api.groq.com/openai/v1","CUSTOM_LLM_API_KEY":"%s","CUSTOM_MODEL":"llama-3.3-70b-versatile","OPENAI_API_KEY":"%s","CAN_CHANGE_KEYS":"true","DISABLE_ANONYMOUS_TELEMETRY":"true","PORT":"8000"},"ports":{"8000":"HTTP"}}]' $REPOSITORY_URI:latest $GROQ_API_KEY $OPENAI_API_KEY > containers.json
+      - printf '[{"containerName":"presenton-api","image":"%s","environment":{"LLM":"custom","CUSTOM_LLM_URL":"https://api.groq.com/openai/v1","CUSTOM_LLM_API_KEY":"%s","CUSTOM_MODEL":"openai/GPT-OSS-120B","OPENAI_API_KEY":"%s","CAN_CHANGE_KEYS":"true","DISABLE_ANONYMOUS_TELEMETRY":"true","PORT":"8000"},"ports":{"8000":"HTTP"}}]' $REPOSITORY_URI:latest $GROQ_API_KEY $OPENAI_API_KEY > containers.json
       - printf '{"containerName":"presenton-api","containerPort":8000,"healthCheck":{"path":"/health","intervalSeconds":30,"timeoutSeconds":10,"healthyThreshold":2,"unhealthyThreshold":3,"successCodes":"200-299"}}' > public-endpoint.json
       - echo Deploying to Lightsail...
       - aws lightsail create-container-service-deployment --service-name presenton-backend --containers file://containers.json --public-endpoint file://public-endpoint.json --region eu-north-1
