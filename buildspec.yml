@@ -3,21 +3,27 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - echo Build started on `date`
+      - echo Logging into Amazon ECR Public...
+      - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+      - REPOSITORY_URI=public.ecr.aws/l7w8u2s9/presenton-backend
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - cd servers/fastapi
-      - echo Installing Lightsail plugin...
-      - curl "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl" -o "/usr/local/bin/lightsailctl"
-      - chmod +x /usr/local/bin/lightsailctl
       
   build:
     commands:
+      - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t presenton-backend:latest -f Dockerfile .
+      - docker build -t $REPOSITORY_URI:latest -t $REPOSITORY_URI:$IMAGE_TAG -f Dockerfile .
       
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Pushing Docker image to Lightsail using lightsailctl...
-      - aws lightsail get-container-services --service-name presenton-backend --region eu-north-1
-      - lightsailctl push-container-image --service-name presenton-backend --label presenton-api --image presenton-backend:latest --region eu-north-1
-      - echo Image pushed successfully
+      - echo Pushing Docker image to ECR Public...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Creating Lightsail deployment JSON...
+      - printf '[{"containerName":"presenton-api","image":"%s","environment":{"LLM":"custom","CUSTOM_LLM_URL":"https://api.groq.com/openai/v1","CUSTOM_LLM_API_KEY":"%s","CUSTOM_MODEL":"llama-3.3-70b-versatile","CAN_CHANGE_KEYS":"true","DISABLE_ANONYMOUS_TELEMETRY":"true","PORT":"8000"},"ports":{"8000":"HTTP"}}]' $REPOSITORY_URI:latest $GROQ_API_KEY > containers.json
+      - printf '{"containerName":"presenton-api","containerPort":8000,"healthCheck":{"path":"/health","intervalSeconds":30,"timeoutSeconds":10,"healthyThreshold":2,"unhealthyThreshold":3,"successCodes":"200-299"}}' > public-endpoint.json
+      - echo Deploying to Lightsail...
+      - aws lightsail create-container-service-deployment --service-name presenton-backend --containers file://containers.json --public-endpoint file://public-endpoint.json --region eu-north-1
+      - echo Deployment initiated successfully
