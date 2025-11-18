@@ -19,10 +19,14 @@ from utils.get_env import (
 def get_llm_provider():
     try:
         return LLMProvider(get_llm_provider_env())
-    except:
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"ERROR in get_llm_provider(): {type(e).__name__}: {str(e)}")
+        print(f"Full traceback:\n{error_details}")
         raise HTTPException(
             status_code=500,
-            detail=f"Invalid LLM provider. Please select one of: openai, google, anthropic, ollama, custom",
+            detail=f"Failed to initialize LLM provider: {type(e).__name__}: {str(e)}",
         )
 
 
