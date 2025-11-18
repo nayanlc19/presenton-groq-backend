@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 
 
 class IconFinderService:
@@ -25,12 +26,24 @@ class IconFinderService:
             return
             
         print("Initializing icons collection (lazy load)...")
-        self._client = chromadb.PersistentClient(
-            path="chroma", settings=Settings(anonymized_telemetry=False)
-        )
+        
+        # Use APP_DATA_DIRECTORY if available, otherwise use relative path
+        app_data_dir = os.environ.get("APP_DATA_DIRECTORY", ".")
+        chroma_path = os.path.join(app_data_dir, "chroma")
+        
+        try:
+            self._client = chromadb.PersistentClient(
+                path=chroma_path, settings=Settings(anonymized_telemetry=False)
+            )
+        except Exception as e:
+            print(f"Failed to initialize ChromaDB at {chroma_path}: {e}")
+            print("Icon search will return empty results")
+            self._initialized = True
+            return
         
         self.embedding_function = ONNXMiniLM_L6_V2()
-        self.embedding_function.DOWNLOAD_PATH = "chroma/models"
+        model_path = os.path.join(chroma_path, "models")
+        self.embedding_function.DOWNLOAD_PATH = model_path
         self.embedding_function._download_model_if_not_exists()
         try:
             self._collection = self._client.get_collection(
