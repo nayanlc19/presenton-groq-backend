@@ -807,11 +807,24 @@ async def generate_presentation_sync(
     sql_session: AsyncSession = Depends(get_async_session),
 ):
     try:
+        print("=== GENERATE PRESENTATION SYNC START ===")
+        print(f"Request content: {request.content[:100] if request.content else 'None'}")
+        print(f"Request n_slides: {request.n_slides}")
+        
+        print("Calling check_if_api_request_is_valid...")
         (presentation_id,) = await check_if_api_request_is_valid(request, sql_session)
-        return await generate_presentation_handler(
+        print(f"Presentation ID created: {presentation_id}")
+        
+        print("Calling generate_presentation_handler...")
+        result = await generate_presentation_handler(
             request, presentation_id, None, sql_session
         )
-    except Exception:
+        print("=== GENERATE PRESENTATION SYNC SUCCESS ===")
+        return result
+    except Exception as e:
+        print(f"=== GENERATE PRESENTATION SYNC ERROR ===")
+        print(f"Error type: {type(e).__name__}")
+        print(f"Error message: {str(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Presentation generation failed")
 
