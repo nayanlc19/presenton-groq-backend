@@ -553,7 +553,7 @@ class LLMClient:
                 content = await self._generate_openai_structured(
                     model=model,
                     messages=new_messages,
-                    response_format=response_schema,
+                    response_format=None,  # OpenAI API limitation: cant use response_format with tools
                     strict=strict,
                     max_tokens=max_tokens,
                     tools=all_tools,
