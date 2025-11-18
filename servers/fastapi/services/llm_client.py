@@ -1293,7 +1293,7 @@ class LLMClient:
                 max_tokens=max_tokens,
                 strict=strict,
                 tools=all_tools,
-                response_format=response_schema,
+                response_format=None,  # OpenAI API limitation: can't use response_format with tools
                 extra_body=extra_body,
                 depth=depth + 1,
             ):
